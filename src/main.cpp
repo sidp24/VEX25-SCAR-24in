@@ -1,4 +1,5 @@
 #include "main.h"
+
 #include "pros/motors.h"
 
 /////
@@ -122,8 +123,8 @@ void opcontrol() {
   ez::Piston clamp('A', false);
   ez::Piston flipper('G', false);
   // ez::Piston rush('C', false);
-  ez::Piston leftDoinker('D', false);
-  ez::Piston rightDoinker('H', false);
+  ez::Piston leftDoinker('H', false);
+  ez::Piston rightDoinker('D', false);
   pros::MotorGroup ladyBrown({17, -10});
 
   intake.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
@@ -133,6 +134,8 @@ void opcontrol() {
   bool flipperDeployed = false;
   bool leftDoinkerDeployed = false;
   bool rightDoinkerDeployed = false;
+  ez::PID lbPID{0.45, 0.5, 0.0, 0.0, "ladyBrown"};
+  lb_rotation.set_position(0);
 
   while (true) {
     // chassis.opcontrol_tank();  // Tank control
@@ -158,15 +161,13 @@ void opcontrol() {
       leftDoinkerDeployed = true;
       // rightDoinkerDeployed = !rightDoinkerDeployed;
       // rightDoinker.set(rightDoinkerDeployed);
-    }
-    else{
+    } else {
       leftDoinkerDeployed = false;
     }
 
-    if(leftDoinkerDeployed){
+    if (leftDoinkerDeployed) {
       leftDoinker.set(true);
-    }
-    else{
+    } else {
       leftDoinker.set(false);
     }
 
@@ -174,15 +175,13 @@ void opcontrol() {
       rightDoinkerDeployed = true;
       // leftDoinkerDeployed = !leftDoinkerDeployed;
       // leftDoinker.set(leftDoinkerDeployed);
-    }
-    else{
+    } else {
       rightDoinkerDeployed = false;
     }
 
-    if(rightDoinkerDeployed){
+    if (rightDoinkerDeployed) {
       rightDoinker.set(true);
-    }
-    else{
+    } else {
       rightDoinker.set(false);
     }
 
@@ -191,10 +190,14 @@ void opcontrol() {
       flipper.set(flipperDeployed);
     }
 
+    if (master.get_digital_new_press(DIGITAL_X)) {
+      lbPID.target_set(50000);
+    }
 
-
-    ez::PID lbPID{0.45, 0, 0, 0, "ladyBrown"};
-
+    double pidOutput = lbPID.compute(lb_rotation.get_position());
+    ladyBrown.move(pidOutput);
+    // std::cout << "PID Output: " << pidOutput << std::endl;
+    master.set_text(0, 0, "PID Output: " + std::to_string(pidOutput));
 
     if (master.get_digital(DIGITAL_L1)) {
       ladyBrown.move(127);
