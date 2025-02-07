@@ -1,4 +1,5 @@
 #include "main.h"
+#include "pros/motors.h"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -55,6 +56,7 @@ void initialize() {
   chassis.initialize();
   ez::as::initialize();
   master.rumble(".");
+  lb_rotation.reset();
 }
 
 /**
@@ -124,7 +126,8 @@ void opcontrol() {
   ez::Piston rightDoinker('H', false);
   pros::MotorGroup ladyBrown({17, -10});
 
-  intake.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+  intake.set_brake_mode(pros::E_MOTOR_BRAKE_COAST);
+  ladyBrown.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
   bool clampDeployed = false;
   bool flipperDeployed = false;
@@ -151,14 +154,36 @@ void opcontrol() {
       clamp.set(clampDeployed);
     }
 
-    if (master.get_digital_new_press(DIGITAL_Y)) {
-      rightDoinkerDeployed = !rightDoinkerDeployed;
-      rightDoinker.set(rightDoinkerDeployed);
+    if (master.get_digital(DIGITAL_Y)) {
+      leftDoinkerDeployed = true;
+      // rightDoinkerDeployed = !rightDoinkerDeployed;
+      // rightDoinker.set(rightDoinkerDeployed);
+    }
+    else{
+      leftDoinkerDeployed = false;
     }
 
-    if (master.get_digital_new_press(DIGITAL_RIGHT)) {
-      leftDoinkerDeployed = !leftDoinkerDeployed;
-      leftDoinker.set(leftDoinkerDeployed);
+    if(leftDoinkerDeployed){
+      leftDoinker.set(true);
+    }
+    else{
+      leftDoinker.set(false);
+    }
+
+    if (master.get_digital(DIGITAL_RIGHT)) {
+      rightDoinkerDeployed = true;
+      // leftDoinkerDeployed = !leftDoinkerDeployed;
+      // leftDoinker.set(leftDoinkerDeployed);
+    }
+    else{
+      rightDoinkerDeployed = false;
+    }
+
+    if(rightDoinkerDeployed){
+      rightDoinker.set(true);
+    }
+    else{
+      rightDoinker.set(false);
     }
 
     if (master.get_digital_new_press(DIGITAL_DOWN)) {
@@ -166,10 +191,14 @@ void opcontrol() {
       flipper.set(flipperDeployed);
     }
 
+
+
+    ez::PID lbPID{0.45, 0, 0, 0, "ladyBrown"};
+
+
     if (master.get_digital(DIGITAL_L1)) {
       ladyBrown.move(127);
     } else if (master.get_digital(DIGITAL_L2)) {
-      ladyBrown.brake();
       ladyBrown.move(-127);
     } else {
       ladyBrown.brake();

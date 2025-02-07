@@ -7,4 +7,5 @@
 // inline pros::adi::DigitalIn limit_switch('A');
 
 inline pros::MotorGroup intake({7, -16});
+inline pros::Rotation lb_rotation(18);
 // inline pros::Optical color(10);
