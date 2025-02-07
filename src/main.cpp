@@ -134,7 +134,7 @@ void opcontrol() {
   bool flipperDeployed = false;
   bool leftDoinkerDeployed = false;
   bool rightDoinkerDeployed = false;
-  ez::PID lbPID{0.45, 0.5, 0.0, 0.0, "ladyBrown"};
+  ez::PID lbPID{0.5, 0.05, 0.01, 0.0, "ladyBrown"};
   lb_rotation.set_position(0);
 
   while (true) {
@@ -191,9 +191,8 @@ void opcontrol() {
     }
 
     if (master.get_digital_new_press(DIGITAL_X)) {
-      lbPID.target_set(50000);
+      lbPID.target_set(350);
     }
-
     double pidOutput = lbPID.compute(lb_rotation.get_position());
     ladyBrown.move(pidOutput);
     // std::cout << "PID Output: " << pidOutput << std::endl;
